@@ -32,21 +32,21 @@ namespace UNiDAYS
 	/// <summary>
 	/// UNiDAYS SDK Helper Class
 	/// </summary>
-    public sealed class StudentApiHelper
-    {
-	    readonly byte[] key;
+	public sealed class StudentApiHelper
+	{
+		readonly byte[] key;
 		static readonly DateTime epoc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
-	    public StudentApiHelper(byte[] key)
-	    {
+		public StudentApiHelper(byte[] key)
+		{
 			if (key == null)
 				throw new ArgumentNullException("key", "Key cannot be null");
 
 			if (key.Length == 0)
 				throw new ArgumentException("Key cannot be empty", "key");
 
-		    this.key = key;
-	    }
+			this.key = key;
+		}
 
 		/// <summary>
 		/// Signs a url with the given student id, timestamp and hash key.
@@ -57,7 +57,7 @@ namespace UNiDAYS
 		/// <param name="timestamp">The timestamp of the request. Usually this wants to be "UTC-Now"</param>
 		/// <returns>A signed URL</returns>
 		[Obsolete("This should not be called in production. It exists for reference only.")]
-	    public string SignUrl(string url, string studentId, DateTime timestamp)
+		public string SignUrl(string url, string studentId, DateTime timestamp)
 		{
 			if (string.IsNullOrEmpty(url))
 				throw new ArgumentException("URL is required", "url");
@@ -68,14 +68,14 @@ namespace UNiDAYS
 		}
 
 		string SignUrlWithStudentId(StringBuilder builder, string url, string studentId, DateTime timestamp)
-	    {
-		    var diff = timestamp.ToUniversalTime() - epoc;
+		{
+			var diff = timestamp.ToUniversalTime() - epoc;
 			var ud_t = (long)Math.Floor(diff.TotalSeconds);
 
-		    builder
-			    .Append("?ud_s=")
+			builder
+				.Append("?ud_s=")
 				.Append(HttpUtility.UrlEncode(studentId))
-			    .Append("&ud_t=")
+				.Append("&ud_t=")
 				.Append(ud_t);
 
 			SignUrl(builder, "ud_h");
@@ -83,13 +83,13 @@ namespace UNiDAYS
 			if (url.Contains("?"))
 				builder.Replace('?', '&', 0, 1);
 
-		    builder.Insert(0, url);
+			builder.Insert(0, url);
 
-		    return builder.ToString();
-	    }
+			return builder.ToString();
+		}
 
 		string Hash(string plaintext)
-	    {
+		{
 			using (var hmac = new FIPSHMACSHA512(key))
 			{
 				hmac.Initialize();
@@ -97,7 +97,7 @@ namespace UNiDAYS
 				var signatureBytes = hmac.ComputeHash(buffer);
 				return Convert.ToBase64String(signatureBytes);
 			}
-	    }
+		}
 
 		void SignUrl(StringBuilder builder, string param)
 		{
@@ -108,7 +108,7 @@ namespace UNiDAYS
 				.Append(param)
 				.Append('=')
 				.Append(HttpUtility.UrlEncode(signature));
-	    }
+		}
 
 		public static DateTime ParseTimestamp(long timestamp)
 		{
@@ -122,22 +122,22 @@ namespace UNiDAYS
 		/// <param name="timestamp"></param>
 		/// <param name="hash"></param>
 		/// <returns></returns>
-	    public bool VerifyHash(string studentId, DateTime timestamp, string hash)
-	    {
+		public bool VerifyHash(string studentId, DateTime timestamp, string hash)
+		{
 			var diff = timestamp.ToUniversalTime() - epoc;
 			var ud_t = (long)Math.Floor(diff.TotalSeconds);
 
-		    var builder = new StringBuilder();
+			var builder = new StringBuilder();
 
-		    builder
-			    .Append("?ud_s=")
-			    .Append(HttpUtility.UrlEncode(studentId))
-			    .Append("&ud_t=")
-			    .Append(ud_t);
+			builder
+				.Append("?ud_s=")
+				.Append(HttpUtility.UrlEncode(studentId))
+				.Append("&ud_t=")
+				.Append(ud_t);
 
-		    var generatedHash = Hash(builder.ToString());
+			var generatedHash = Hash(builder.ToString());
 
-		    return hash.Equals(generatedHash, StringComparison.InvariantCulture);
-	    }
-    }
+			return hash.Equals(generatedHash, StringComparison.InvariantCulture);
+		}
+	}
 }
